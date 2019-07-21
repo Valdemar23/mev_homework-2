@@ -1,0 +1,97 @@
+# docker.yml
+---
+- hosts: pc
+  user: jackiechan
+  become_method: sudo
+  become_user: root
+#  vars:
+#          name_db: /var/lib/posgresql/db
+
+  tasks:
+    - name: Install docker using apt manager
+      become: yes
+      become_user: root
+      apt: name={{ item }}
+      with_items:
+        - docker.io
+        - python-pip
+        - curl
+
+          #- python-pip3
+          #    - name: Install docker using pip manager
+    #- pip:
+     #   become: yes
+      #  become_user: root
+       # name: docker
+
+#https://docs.ansible.com/ansible/latest/modules/service_module.html
+    - name: Start service , if not started
+      become: yes
+      become_user: root
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Install Docker Machine
+      become: yes
+      become_user: root
+      shell: curl -L https://github.com/docker/machine/releases/download/v0.16.0 > /usr/local/bin/docker-machine
+      args:
+        creates: /usr/local/bin/docker-machine
+
+    - name: Apply executable permissions to docker-machine
+      become: yes
+      become_user: root
+      file: path=/usr/local/bin/docker-machine state=file mode=0755
+
+    - name: Install bash-completion
+      become: yes
+      become_user: root
+      apt: name={{ item }}
+      with_items:
+        - bash-completion
+
+    - name: Install Docker Machine bash_completion
+      become: yes
+      become_user: root
+      shell: curl -L https://raw.githubusercontent.com/docker/machine/v0.16.0/contrib/completion/bash/{{ item }} > /etc/bash_completion.d/{{ item }}
+      args:
+        creates: /etc/bash_completion.d/{{ item }}
+      with_items:
+        - docker-machine-prompt.bash
+        - docker-machine-wrapper.bash
+        - docker-machine.bash
+
+#https://docs.ansible.com/ansible/latest/modules/docker_login_module.html
+    - name: Login into DockerHub
+      become: yes
+      become_user: root
+      docker_login:
+        username: yourfriendbober
+        password: 1q1q1qSWSPQRV
+        config_path: /root/.docker/config.json
+
+#https://docs.ansible.com/ansible/latest/modules/docker_image_module.html
+    - name: pull an image
+      become: yes
+      become_user: root
+      docker_image:
+        name: yourfriendbober/ubuntu-nginx-ansible
+        source: pull
+          
+    - name: Start container with healthstatus
+      become: yes
+      become_user: root
+      docker_container:
+        name: ubuntu-nginx-ansible
+        image: yourfriendbober/ubuntu-nginx-ansible
+        state: started
+        healthcheck:
+          # Check if nginx server is healthy by curl'ing the server.
+          # If this fails or timeouts, the healthcheck fails.
+          test: ["CMD", "curl", "--fail", "http://nginx.host.com"]
+          interval: 1m30s
+          timeout: 10s
+          retries: 3
+          start_period: 30s
