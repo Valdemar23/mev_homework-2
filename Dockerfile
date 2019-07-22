@@ -1,4 +1,5 @@
 #Download base image ubuntu 16.04 - https://www.rosehosting.com/blog/how-to-install-nginx-on-ubuntu-16-04/
+#My DockerHub - https://cloud.docker.com/u/yourfriendbober/repository/docker/yourfriendbober/ubuntu-nginx-ansible
 FROM ubuntu:16.04
 
 RUN apt -y update && apt -y upgrade
