@@ -1,85 +1,53 @@
 # docker.yml
 ---
-- hosts: pc
-  user: jackiechan
-  become_method: sudo
-  become_user: root
-#  vars:
-#          name_db: /var/lib/posgresql/db
+- hosts: web,aws-instances
+  become: yes
 
   tasks:
     - name: Install docker using apt manager
       become: yes
       become_user: root
-      apt: name={{ item }}
-      with_items:
-        - docker.io
-        - python-pip
-        - curl
-
-          #- python-pip3
-          #    - name: Install docker using pip manager
-    #- pip:
-     #   become: yes
-      #  become_user: root
-       # name: docker
-
-#https://docs.ansible.com/ansible/latest/modules/service_module.html
-    - name: Start service , if not started
-      become: yes
-      become_user: root
+      # apt: name={{ item }} # Стиль вызова модулей должен быть одинаковым в рамках всего плейбука
+      apt:
+        name: ['docker.io', 'python-pip', 'curl', 'python3-pip'] # Я бы не ставил Docker из стандартного репозитория т.к. там он будет скорее всего древней версии
+        update_cache: yes # Важно обновить кэш, перед тем как что то ставить. 
+                          # Т.к. иеющийся кэш может быть уже протухшим или его может не быть вовсе.
+        #pip: name=docker
+    # - pip:
+    - name: Install 'docker' pip packege
+      pip:
+        name: docker
+        # become: yes
+        # become_user: root
+        
+    # https://docs.ansible.com/ansible/latest/modules/service_module.html
+    - name: Start service, if not started
+      # become: yes
+      # become_user: root
       service:
         name: docker
         state: started
         enabled: yes
 
-    - name: Install Docker Machine
-      become: yes
-      become_user: root
-      shell: curl -L https://github.com/docker/machine/releases/download/v0.16.0 > /usr/local/bin/docker-machine
-      args:
-        creates: /usr/local/bin/docker-machine
 
-    - name: Apply executable permissions to docker-machine
-      become: yes
-      become_user: root
-      file: path=/usr/local/bin/docker-machine state=file mode=0755
-
-    - name: Install bash-completion
-      become: yes
-      become_user: root
-      apt: name={{ item }}
-      with_items:
-        - bash-completion
-
-    - name: Install Docker Machine bash_completion
-      become: yes
-      become_user: root
-      shell: curl -L https://raw.githubusercontent.com/docker/machine/v0.16.0/contrib/completion/bash/{{ item }} > /etc/bash_completion.d/{{ item }}
-      args:
-        creates: /etc/bash_completion.d/{{ item }}
-      with_items:
-        - docker-machine-prompt.bash
-        - docker-machine-wrapper.bash
-        - docker-machine.bash
-
-#https://docs.ansible.com/ansible/latest/modules/docker_login_module.html
+    # https://docs.ansible.com/ansible/latest/modules/docker_login_module.html
     - name: Login into DockerHub
-      become: yes
-      become_user: root
+      # become: yes
+      # become_user: root
       docker_login:
-        username: yourfriendbober
+        username: yourfriendbober # Очень плохая идея хранить так креденшелы
         password: 1q1q1qSWSPQRV
         config_path: /root/.docker/config.json
 
-#https://docs.ansible.com/ansible/latest/modules/docker_image_module.html
+    # https://docs.ansible.com/ansible/latest/modules/docker_image_module.html
     - name: pull an image
-      become: yes
-      become_user: root
+      # become: yes
+      # become_user: root
       docker_image:
         name: yourfriendbober/ubuntu-nginx-ansible
         source: pull
           
+#https://docs.ansible.com/ansible/latest/modules/docker_container_module.html
     - name: Start container with healthstatus
       become: yes
       become_user: root
