@@ -12,8 +12,7 @@
         name: ['docker.io', 'python-pip', 'curl', 'python3-pip'] # Я бы не ставил Docker из стандартного репозитория т.к. там он будет скорее всего древней версии
         update_cache: yes # Важно обновить кэш, перед тем как что то ставить. 
                           # Т.к. иеющийся кэш может быть уже протухшим или его может не быть вовсе.
-        #pip: name=docker
-    # - pip:
+
     - name: Install 'docker' pip packege
       pip:
         name: docker
