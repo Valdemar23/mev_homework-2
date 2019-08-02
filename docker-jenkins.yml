@@ -1,5 +1,6 @@
-# docker-jenkins.yml
+# docker.yml
 ---
+# - hosts: pc
 - hosts: aws-instances
   become: yes
   vars:
@@ -15,9 +16,7 @@
       apt:
         name: ['docker.io', 'python-pip', 'curl', 'python3-pip'] # Я бы не ставил Docker из стандартного репозитория т.к. там он будет скорее всего древней версии
         update_cache: yes # Важно обновить кэш, перед тем как что то ставить. 
-                          # Т.к. иеющийся кэш может быть уже протухшим или его может не быть вовсе.
-        #pip: name=docker
-
+                             # Т.к. иеющийся кэш может быть уже протухшим или его может не быть вовсе.
     - name: Install 'docker' pip packege
       pip:
         name: docker
@@ -32,7 +31,6 @@
         name: docker
         state: started
         enabled: yes
-
 
     # https://docs.ansible.com/ansible/latest/modules/docker_login_module.html
     - name: Login into DockerHub
